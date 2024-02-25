@@ -26,7 +26,7 @@
 
     
     <!-- Display the title of the latest post -->
-<h2>Latest Post: <%= locals.latestPost ? locals.latestPost.title : 'No posts yet' %></h2>
+<h2>Latest Post: <%= locals.latestPost %></h2>
 
 <% posts.forEach(post => { %>
     <div class="card mt-4">

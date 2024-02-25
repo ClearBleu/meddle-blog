@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import { v4 as uuidv4 } from 'uuid';
 const app = express();
-const port = 3001;
+const port = 3000;
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -15,7 +15,17 @@ function generateUniqueId() {
 } 
 
 app.get("/", (req, res) => {
-  res.render("index.ejs", { posts: posts });
+  let getLatestPost = posts.length -1;
+  
+  let latestPost;
+  //Determine if the post array is empty. If not, return latest addition to array, otherwise say there are no posts yet.
+  if (getLatestPost >= 0){
+    latestPost = posts[getLatestPost].title
+  }else{
+    latestPost = "No Posts Yet";
+  }
+  
+  res.render("index.ejs", { posts : posts, latestPost: latestPost });
 });
 
 app.post("/", (req, res) => {
@@ -40,11 +50,12 @@ app.post("/", (req, res) => {
       posts.push(newPost);
     }
     
-    res.redirect("/");
+    res.redirect("/",);
 });
   
 app.get("/edit/:postId", (req, res) => {
 const postId = req.params.postId;
+console.log(postId);
 // Find the post with the given ID
 const postToEdit = posts.find(post => post.id === postId);
 
