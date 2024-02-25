@@ -16,7 +16,7 @@ function generateUniqueId() {
 
 app.get("/", (req, res) => {
   let getLatestPost = posts.length -1;
-  
+
   let latestPost;
   //Determine if the post array is empty. If not, return latest addition to array, otherwise say there are no posts yet.
   if (getLatestPost >= 0){
@@ -50,12 +50,12 @@ app.post("/", (req, res) => {
       posts.push(newPost);
     }
     
-    res.redirect("/",);
+    res.redirect("/");
 });
   
 app.get("/edit/:postId", (req, res) => {
 const postId = req.params.postId;
-console.log(postId);
+
 // Find the post with the given ID
 const postToEdit = posts.find(post => post.id === postId);
 
