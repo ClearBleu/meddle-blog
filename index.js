@@ -1,9 +1,27 @@
 import express from "express";
 import bodyParser from "body-parser";
 import { v4 as uuidv4 } from 'uuid';
+import pg from "pg";
+import env from "dotenv";
+
 const app = express();
 const port = 3000;
+//Configure the use os .env file to harden database
+env.config();
 
+//TODO: add a user table to database for individual users after testing table for posts
+
+//In order to integrate db, will need to rewrite functions and varibles from using posts array to using postsDB
+
+//Create database instance using .env variables
+const db = new pg.Client({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: 5432,
+});
+db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("styles"))
