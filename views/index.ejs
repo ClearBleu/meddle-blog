@@ -17,37 +17,33 @@
         </div>
         
         <div class="form-group mb-2">
-            <textarea required placeholder="Post here:" name="blog" id="blog" class="form-control"></textarea>
+            <textarea required placeholder="Post here:" name="body" id="body" class="form-control"></textarea>
         </div>
 
-        <a href="/" class="btn btn-secondary mt-2">Cancel</a>
+        <a href="/" class="btn btn-secondary mt-2">Clear</a>
         <button type="submit" class="btn btn-primary mt-2" > Submit</button>
     </form>
 
     
     <!-- Display the title of the latest post -->
-<h2>Latest Post: <%= locals.latestPost %></h2>
+<h2 class="mt-4">Previous Posts: </h2>
 
 <% posts.forEach(post => { %>
     <div class="card mt-4">
         <div class="card-body">
             <h4 class="card-header py-3"><%= post.title %></h4>
-            <div class="card-body mb-2"><%= post.desc %></div>
-            <div class="card-body mb-2"><%= post.blog %></div>
-            <!-- Add an Edit link with the post ID -->
-            <a href="/edit/<%= post.id %>" class="btn btn-primary">Edit</a>
-            <!-- Add a Delete link with the post ID -->
-            <a href="/delete/<%= post.id %>" class="btn btn-danger">Delete</a>
+            
+            <div class="card-body mb-2"><%= post.description %></div>
+            <div class="card-body mb-2"><%= post.body %></div>
+            <p class="time"><%= post.time %></p>
+            <!--Edit link with the post ID -->
+            <a href="/edit/<%= post.post_id %>" class="btn btn-primary">Edit</a>
+            
+            <!--Delete link with the post ID -->
+            <a href="/delete/<%= post.post_id %>" class="btn btn-danger">Delete</a>
         </div>
     </div>
 <% }) %>
-
-
-    <%function confirmDelete(url) {%>
-      <%if (confirm("Are you sure you want to delete this post?")) { %>
-       <%= window.location.href = url;%>
-      <%}%>
-    <%}%>
    
     
 </body>

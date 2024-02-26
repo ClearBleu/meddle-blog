@@ -3,21 +3,22 @@
     <%- include("header.ejs") %>
 
 <body>
-    <form action="/update/<%= post.id %>" method="post">
-    <!-- Your form fields go here, pre-filled with existing post data -->
+    <form action="/update/<%= post.post_id %>" method="POST">
+
+    
     <div class="form-group mb-2">
         <label>New title:</label>
-            <input placeholder="Title" type="text" name="title" id="title" class="form-control" value="">
+            <input placeholder="<%=post.title%>" type="text" name="title" id="title" class="form-control">
         </div>
         
         <div class="form-group mb-2">
             <label>New description:</label>
-            <textarea placeholder="Enter a description of your post" name="description" id="description" class="form-control"></textarea>
+            <textarea placeholder="<%=post.description%>" name="description" id="description" class="form-control"></textarea>
         </div>
         
         <div class="form-group mb-2">
             <label>New post:</label>
-            <textarea placeholder="Post here:" name="blog" id="blog" class="form-control"></textarea>
+            <textarea placeholder="<%=post.body%>" name="body" id="body" class="form-control"></textarea>
         </div>
 
     <button type="submit" class="btn btn-primary mt-2">Update Post</button>
