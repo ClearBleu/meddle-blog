@@ -1,8 +1,33 @@
 body{
     background-color: black;
-    color:aliceblue;
+    color: crimson;
 }
 
+.login{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: 50px;
+}
+.buttons{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
 .time{
     font-size: small;
+}
+
+#copyright{
+    color: crimson;
+}
+
+.label-text{
+    color: #212529 !important; 
+}
+
+body.bg-dark{
+    color: crimson;
 }
