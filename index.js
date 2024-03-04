@@ -8,10 +8,14 @@ import GoogleStrategy from "passport-google-oauth2";
 import session from "express-session";
 import env from "dotenv";
 
-//TODO: Add user log in page and authentication routes on backend
-//TODO: Link user table and posts to identify which posts were made by each user and sort according to user
-//TODO: add try-catch blocks for error handling on GET and POST routes to /posts
+// ***Quick-fix: Do first***
+//TODO: Add try-catch blocks for error handling on GET and POST routes to /posts
+
+//TODO: refactor if statements for better readability and efficiency
+//TODO: Add Google Oauth2 and authentication routes on backend
+//TODO: Add user auth so user can post. Will not allow posting right now.
 //TODO: Add password confirmation functionality when registering new user
+//TODO: Link user table and posts to identify which posts were made by each user and sort according to user
 
 const app = express();
 const port = 3000;
@@ -209,7 +213,7 @@ app.get("/delete/:post_id", async (req, res) => {
 
 passport.use(
   "local",
-  new Strategy(async function verify(username, password, cb) {
+  new Strategy(async function verify(username, password, cb) { //Username is a mandatory parameter for passport. Make input tag in html reflects this value
     try {
       const result = await db.query("SELECT * FROM users WHERE email = $1 ", [
         username,
