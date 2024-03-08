@@ -1,12 +1,10 @@
-
-  __  __          _     _ _      
- |  \/  | ___  __| | __| | | ___ 
- | |\/| |/ _ \/ _` |/ _` | |/ _ \
- | |  | |  __/ (_| | (_| | |  __/
- |_|  |_|\___|\__,_|\__,_|_|\___|
-                                 
-                                                   
-
+.88b  d88. d88888b d8888b. d8888b. db      d88888b 
+88'YbdP`88 88'     88  `8D 88  `8D 88      88'     
+88  88  88 88ooooo 88   88 88   88 88      88ooooo 
+88  88  88 88~~~~~ 88   88 88   88 88      88~~~~~ 
+88  88  88 88.     88  .8D 88  .8D 88booo. 88.     
+YP  YP  YP Y88888P Y8888D' Y8888D' Y88888P Y88888P 
+                                                                  
 # Building a place for Medical Laboratory professionals to share information with their peers
 
 # Still a work in progress
