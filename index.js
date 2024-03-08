@@ -231,23 +231,21 @@ app.post("/update/:post_id", async (req, res) => {
 app.get("/delete/:post_id", async (req, res) => {
   try {
     const postId = req.params.post_id;
-    
     // Select correct post to delete
     const postToDelete = await db.query("SELECT * FROM public.posts WHERE post_id = $1", [postId]);
     // Check if post exists, if not throw error
     if (postToDelete.rows.length === 0) {
       return res.status(404).send("Post not found");
     }else{
-      
-      // Delete the post
+        // Delete the post
       await db.query("DELETE FROM public.posts WHERE post_id = $1", [postId]);
       // Redirect to the home page after deletion
       res.redirect("/posts");
+      
     }
-    
   } catch (err) {
-    console.error("Error deleting post:", err);
-    res.status(500).send("Error deleting post");
+    console.error(`Error deleting post: ${postId}`, err);
+    res.status(500).send("Error deleting post: " + postId);
   }
 });
 

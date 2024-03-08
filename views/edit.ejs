@@ -22,8 +22,19 @@
         </div>
 
     <button type="submit" class="btn btn-primary mt-2">Update Post</button>
-    <!--Delete link with the post ID -->
-    <a href="/delete/<%= post.post_id %>" class="btn btn-danger mt-2">Delete</a>
+    
+    <form id="deleteForm" action="/delete/<%= post.post_id %>" method="GET">
+        <!-- Delete link with the post ID -->
+        <a type="button" href="/delete/<%= post.post_id %>" class="btn btn-danger mt-2" onclick="confirmDelete()">Delete</a>
+    </form>
+    
+    <script>
+        function confirmDelete() {
+            if (confirm("Are you sure you want to delete this post?")) {
+                document.getElementById("deleteForm").submit();
+            }
+        }
+    </script>
 </form>
 </body>
 </html>
