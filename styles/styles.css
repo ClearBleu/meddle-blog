@@ -31,3 +31,9 @@ body{
 body.bg-dark{
     color: crimson;
 }
+
+.container{
+    display: flex;
+    justify-content: center;
+    margin: 50px;
+}

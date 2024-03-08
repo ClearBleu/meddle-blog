@@ -50,10 +50,19 @@ db.connect();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("styles"));
 
-
 app.get("/", (req, res) => {
   const copyDate = new Date().getFullYear()
   res.render("index.ejs", {copyDate});
+});
+
+//Log out user and end session
+app.get("/logout", (req, res) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/");
+  });
 });
 
 app.post(
@@ -67,22 +76,32 @@ app.post(
 app.post("/register", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
+  const displayName = req.body.displayName
   try {
-    const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [
+    const checkEmail = await db.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
 
-    if (checkResult.rows.length > 0) {
-      res.redirect("/");
+    const checkDisplayName = await db.query("SELECT * FROM users WHERE display_name = $1", [
+      displayName,
+    ]);
+    //Checks if email exists in database
+    if (checkEmail.rows.length > 0 || checkDisplayName.rows.length > 0) {
+      const alertScript = `
+        <script>
+          alert("Email or display name already in use. If this is your account, please sign in.");
+          window.location.href = "/";
+        </script>
+      `;
+      return res.send(alertScript);
     } else {
       bcrypt.hash(password, saltRounds, async (err, hash) => {
         if (err) {
           console.error("Error hashing password:", err);
         } else {
           const result = await db.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *",
-            [email, hash]
+            "INSERT INTO users (email, password, display_name) VALUES ($1, $2, $3) RETURNING *",
+            [email, hash, displayName]
           );
           const user = result.rows[0];
           req.login(user, (err) => {
@@ -92,6 +111,7 @@ app.post("/register", async (req, res) => {
         }
       });
     }
+
   } catch (err) {
     console.log(err);
   }
@@ -280,8 +300,8 @@ passport.use(
         ]);
         if (result.rows.length === 0) {
           const newUser = await db.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2)",
-            [profile.email, "google"]
+            "INSERT INTO users (email, password, display_name) VALUES ($1, $2, $3)",
+            [profile.email, "google", "Google user"]
           );
           return cb(null, newUser.rows[0]);
         } else {
