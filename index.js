@@ -8,11 +8,8 @@ import GoogleStrategy from "passport-google-oauth2";
 import session from "express-session";
 import env from "dotenv";
 
-// ***Quick-fix: Do first***
-//TODO: Allow user sessions to keep logged in and post
 
 //TODO: refactor if statements for better readability and efficiency
-//TODO: Add user auth so user can post. Will not allow posting right now.
 //TODO: Add password confirmation functionality when registering new user
 //TODO: Link user table and posts to identify which posts were made by each user and sort according to user
 //TODO: After Linking user table to posts table and creating specific user feeds, will need to add usernames to profile creation and posts
@@ -20,7 +17,8 @@ import env from "dotenv";
 const app = express();
 const port = 3000;
 const saltRounds = 10;
-//Configure the use os .env file to harden database
+
+//Configure the use of .env file to harden database
 env.config();
 
 //create local session
@@ -30,12 +28,15 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
-      maxAge: 1000  * 60 * 60 *24,
+      maxAge: 1000  * 60 * 60 * 24,
     },
   })
 );
 
-//Create database instance using variables from .env
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Create database instance using variables from .env
 const db = new pg.Client({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -43,12 +44,12 @@ const db = new pg.Client({
   password: process.env.DB_PASSWORD,
   port: 5432,
 });
+
 db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("styles"));
-app.use(passport.initialize());
-app.use(passport.session());
+
 
 app.get("/", (req, res) => {
   const copyDate = new Date().getFullYear()
@@ -85,7 +86,7 @@ app.post("/register", async (req, res) => {
           );
           const user = result.rows[0];
           req.login(user, (err) => {
-            console.log("success");
+            console.log(err);
             res.redirect("/posts");
           });
         }
@@ -102,13 +103,15 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/posts", async (req, res) => {
+  
   try {
     if (req.isAuthenticated()){
+      
       //List posts in chronological order
       let posts = await db.query("SELECT * FROM public.posts ORDER BY post_id DESC")
       res.render("posts.ejs", { posts : posts.rows});
     }else {
-      res.redirect("/login");
+      res.redirect("/");
     }
   } catch (err) {
     console.log(err);
@@ -132,10 +135,8 @@ app.get(
 );
 
 app.post("/posts", async (req, res) => {
-  //Timestamp each post and record in database
-
   try {
-    if (req.isAuthenticated()){
+      //Timestamp each post and record in database
       const timeStamp ="Posted: " + new Date().toLocaleString('en-US')
   
       // Create a new post
@@ -150,9 +151,7 @@ app.post("/posts", async (req, res) => {
         [newPost.title, newPost.desc, newPost.body, newPost.time])
         
       res.redirect("/posts");
-      }else {
-        res.redirect("/login");
-      }
+
   } catch (err) {
     console.log(err);
   }
@@ -234,11 +233,12 @@ app.get("/delete/:post_id", async (req, res) => {
 //Passport strategy for user registration with application
 passport.use(
   "local",
-  new Strategy(async function verify(username, password, cb) { //Username is a mandatory parameter for passport. Make input tag in html reflects this value
+  new Strategy(async function verify(username, password, cb) { //Username is a mandatory parameter for passport. Make sure input tag in html reflects this value
     try {
       const result = await db.query("SELECT * FROM users WHERE email = $1 ", [
         username,
       ]);
+      
       if (result.rows.length > 0) {
         const user = result.rows[0];
         const storedHashedPassword = user.password;
