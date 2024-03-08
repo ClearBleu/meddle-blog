@@ -9,13 +9,13 @@ import session from "express-session";
 import env from "dotenv";
 
 // ***Quick-fix: Do first***
-//TODO: Add try-catch blocks for error handling on GET and POST routes to /posts
+//TODO: Allow user sessions to keep logged in and post
 
 //TODO: refactor if statements for better readability and efficiency
-//TODO: Add Google Oauth2 and authentication routes on backend
 //TODO: Add user auth so user can post. Will not allow posting right now.
 //TODO: Add password confirmation functionality when registering new user
 //TODO: Link user table and posts to identify which posts were made by each user and sort according to user
+//TODO: After Linking user table to posts table and creating specific user feeds, will need to add usernames to profile creation and posts
 
 const app = express();
 const port = 3000;
@@ -23,6 +23,7 @@ const saltRounds = 10;
 //Configure the use os .env file to harden database
 env.config();
 
+//create local session
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -101,48 +102,67 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/posts", async (req, res) => {
-  //List posts in chronological order
-  let posts = await db.query("SELECT * FROM public.posts ORDER BY post_id DESC")
-  res.render("posts.ejs", { posts : posts.rows});
+  try {
+    if (req.isAuthenticated()){
+      //List posts in chronological order
+      let posts = await db.query("SELECT * FROM public.posts ORDER BY post_id DESC")
+      res.render("posts.ejs", { posts : posts.rows});
+    }else {
+      res.redirect("/login");
+    }
+  } catch (err) {
+    console.log(err);
+  }
+  
 });
 
-// app.get(
-//   "/auth/google",
-//   passport.authenticate("google", {
-//     scope: ["profile", "email"],
-//   })
-// );
+app.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })
+);
 
-// app.get(
-//   "/auth/google/posts",
-//   passport.authenticate("google", {
-//     successRedirect: "/posts",
-//     failureRedirect: "/",
-//   })
-// );
+app.get(
+  "/auth/google/posts",
+  passport.authenticate("google", {
+    successRedirect: "/posts",
+    failureRedirect: "/",
+  })
+);
 
 app.post("/posts", async (req, res) => {
   //Timestamp each post and record in database
-  const timeStamp ="Posted: " + new Date().toLocaleString('en-US')
+
+  try {
+    if (req.isAuthenticated()){
+      const timeStamp ="Posted: " + new Date().toLocaleString('en-US')
   
-  // Create a new post
-  const newPost = {
-    title: req.body.title,
-    desc: req.body.description,
-    body: req.body.body,
-    time: timeStamp
-  };
-  // Add the new post to the posts table
-  const result = await db.query("INSERT INTO posts (title, description, body, time) VALUES ($1, $2, $3,$4) RETURNING *",
-    [newPost.title, newPost.desc, newPost.body, newPost.time])
-    
-  res.redirect("/posts");
+      // Create a new post
+      const newPost = {
+        title: req.body.title,
+        desc: req.body.description,
+        body: req.body.body,
+        time: timeStamp
+      };
+      // Add the new post to the posts table
+      const result = await db.query("INSERT INTO posts (title, description, body, time) VALUES ($1, $2, $3,$4) RETURNING *",
+        [newPost.title, newPost.desc, newPost.body, newPost.time])
+        
+      res.redirect("/posts");
+      }else {
+        res.redirect("/login");
+      }
+  } catch (err) {
+    console.log(err);
+  }
+  
 });
 
 app.get("/edit/:post_id", async (req, res) => {
   // Find the post with the given ID
   try {
-    //Corrects strange error that occurs with NodeJS and Postgres where NaN is passed as an integer. Was interrupting the query. This fixes that
+    //Corrects strange error that occurs with NodeJS and Postgres where NaN is added to req.params.post_id and then passed as an integer. Was interrupting the query. This fixes that
     //See this post for more information: https://stackoverflow.com/questions/76474696/api-created-using-nodejs-express-and-ejs-files-crashes-when-trying-to-fetch-da/76476887#76476887
     const editPostId = parseInt(req.params.post_id, 10);
     if (Number.isInteger(editPostId)) {
@@ -211,6 +231,7 @@ app.get("/delete/:post_id", async (req, res) => {
   }
 });
 
+//Passport strategy for user registration with application
 passport.use(
   "local",
   new Strategy(async function verify(username, password, cb) { //Username is a mandatory parameter for passport. Make input tag in html reflects this value
@@ -242,38 +263,36 @@ passport.use(
   })
 );
 
-//TODO:Activate get info from google dev portal
-
-// passport.use(
-//   "google",
-//   new GoogleStrategy(
-//     {
-//       clientID: process.env.GOOGLE_CLIENT_ID,
-//       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//       callbackURL: "http://localhost:3000/auth/google/secrets",
-//       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
-//     },
-//     async (accessToken, refreshToken, profile, cb) => {
-//       try {
-//         console.log(profile);
-//         const result = await db.query("SELECT * FROM users WHERE email = $1", [
-//           profile.email,
-//         ]);
-//         if (result.rows.length === 0) {
-//           const newUser = await db.query(
-//             "INSERT INTO users (email, password) VALUES ($1, $2)",
-//             [profile.email, "google"]
-//           );
-//           return cb(null, newUser.rows[0]);
-//         } else {
-//           return cb(null, result.rows[0]);
-//         }
-//       } catch (err) {
-//         return cb(err);
-//       }
-//     }
-//   )
-// );
+//Passport strategy used for Google Oauth login
+passport.use(
+  "google",
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "http://localhost:3000/auth/google/posts",
+      userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+    },
+    async (accessToken, refreshToken, profile, cb) => {
+      try {
+        const result = await db.query("SELECT * FROM users WHERE email = $1", [
+          profile.email,
+        ]);
+        if (result.rows.length === 0) {
+          const newUser = await db.query(
+            "INSERT INTO users (email, password) VALUES ($1, $2)",
+            [profile.email, "google"]
+          );
+          return cb(null, newUser.rows[0]);
+        } else {
+          return cb(null, result.rows[0]);
+        }
+      } catch (err) {
+        return cb(err);
+      }
+    }
+  )
+);
 
 passport.serializeUser((user, cb) => {
   cb(null, user);
